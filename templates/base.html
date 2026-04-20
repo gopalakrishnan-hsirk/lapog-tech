@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Face Access System{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=40">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    <nav class="nav-bar">
+        <div class="logo" style="display: flex; align-items: center; gap: 0.75rem;">
+            <svg viewBox="0 0 100 100" style="width: 32px; height: 32px; filter: drop-shadow(0 0 5px #00f2ff);">
+                <path d="M50 5 L90 25 L90 75 L50 95 L10 75 L10 25 Z" fill="none" stroke="#00f2ff" stroke-width="8"
+                    stroke-linejoin="round" />
+                <circle cx="50" cy="50" r="15" fill="white" />
+            </svg>
+            <h2 style="margin: 0; color: #00f2ff; font-weight: 800; letter-spacing: -0.02em;">Lapog <span
+                    style="color: white;">Tech</span></h2>
+        </div>
+        <div class="nav-links">
+            {% block nav_links %}
+            {% if user.is_authenticated %}
+            <span style="margin-right: 1rem; color: var(--text-dim);">Hi, {{ user.username }}</span>
+            <a href="{% url 'profile' %}" class="btn"
+                style="padding: 0.6rem 1.25rem; background: var(--bg-dark); border: 1px solid var(--border); margin-right: 0.75rem; color: var(--text-main); font-weight: 600;">My
+                Profile</a>
+            <a href="{% url 'logout' %}" class="btn btn-danger"
+                style="padding: 0.6rem 1.25rem; font-weight: 600;">Logout</a>
+            {% else %}
+            <a href="{% url 'login' %}" class="btn btn-primary" style="padding: 0.5rem 1rem;">Login</a>
+            {% endif %}
+            {% endblock %}
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="glass-card"
+            style="margin-bottom: 1.5rem; border-left: 4px solid var(--primary); padding: 1.25rem; background: rgba(255, 255, 255, 0.1);">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    {% block footer %}{% endblock %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

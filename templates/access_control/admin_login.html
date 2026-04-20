@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Admin Login - SecureFace{% endblock %}
+{% block content %}
+<div style="min-height: calc(100vh - 160px); display: flex; align-items: center; justify-content: center;">
+    <div class="glass-card" style="width: 100%; max-width: 420px; border-top: 4px solid var(--accent-red);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div
+                style="width: 100px; height: 100px; background: rgba(239, 68, 68, 0.05); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 1px solid rgba(239, 68, 68, 0.2); position: relative; overflow: hidden;">
+                <svg viewBox="0 0 100 100" style="width: 60px; height: 60px; filter: drop-shadow(0 0 10px #ef4444);">
+                    <path d="M50 5 L90 25 L90 75 L50 95 L10 75 L10 25 Z" fill="none" stroke="#ef4444" stroke-width="8"
+                        stroke-linejoin="round" />
+                    <text x="50" y="65" font-family="Arial" font-size="40" font-weight="900" fill="white"
+                        text-anchor="middle">A</text>
+                </svg>
+            </div>
+            <h2 style="margin: 0; color: white;">Admin Portal</h2>
+            <p style="color: var(--text-dim); margin-top: 0.5rem;">Access node configuration</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 1.5rem;">
+                <label style="color: var(--text-dim); font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Admin
+                    Username</label>
+                <input type="text" name="username" required placeholder="Enter admin username"
+                    style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white;">
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label style="color: var(--text-dim); font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Admin
+                    Password</label>
+                <input type="password" name="password" required placeholder="Enter admin password"
+                    style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white;">
+            </div>
+            <button type="submit" class="btn btn-danger"
+                style="width: 100%; padding: 1rem; background: var(--accent-red); border: none;">SECURE ACCESS</button>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <a href="{% url 'login' %}" style="color: var(--text-dim); text-decoration: none; font-size: 0.9rem;">←
+                    Employee Gateway</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

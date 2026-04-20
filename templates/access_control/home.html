@@ -1,0 +1,588 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Face Access System - Home{% endblock %}
+
+{% block nav_links %}
+{% if is_landing %}
+<!-- Clean view for landing page: No nav links -->
+{% elif user.is_authenticated %}
+<div style="display: flex; align-items: center; gap: 1.5rem;">
+    {% if user.profile.is_admin_user %}
+    <a href="{% url 'admin_dashboard' %}"
+        style="color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s;"
+        onmouseover="this.style.color='var(--primary)'">Admin Panel</a>
+    {% endif %}
+    <a href="{% url 'profile' %}"
+        style="color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.3s;"
+        onmouseover="this.style.color='var(--primary)'">My Profile</a>
+    <a href="{% url 'logout' %}" class="btn btn-primary"
+        style="padding: 0.5rem 1.25rem; font-size: 0.875rem; border-radius: 8px;">Logout</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .btn-chart {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-dim);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-chart.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    #dept-selector:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--primary) !important;
+    }
+
+    #dept-selector option {
+        background: #1a1b2e;
+        color: white;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .emp-value {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0.25rem 0 0;
+    }
+
+    .cost-value {
+        color: var(--accent-red);
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if is_landing %}
+<div
+    style="min-height: calc(100vh - 160px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);">
+    <div style="margin-bottom: 4rem; animation: fadeInDown 1s ease-out;">
+        <div
+            style="margin: 0 auto 3rem; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; position: relative;">
+            <svg viewBox="0 0 100 100"
+                style="width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(0, 242, 255, 0.4));">
+                <defs>
+                    <linearGradient id="hero-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color: #00f2ff; stop-opacity: 1" />
+                        <stop offset="100%" style="stop-color: #6366f1; stop-opacity: 1" />
+                    </linearGradient>
+                </defs>
+                <path d="M50 5 L90 25 L90 75 L50 95 L10 75 L10 25 Z" fill="rgba(0,0,0,0.3)" stroke="url(#hero-grad)"
+                    stroke-width="2" stroke-linejoin="round" />
+                <path d="M30 40 Q50 10 70 40 Q50 70 30 40 Z" fill="none" stroke="white" stroke-width="2"
+                    style="opacity: 0.8;" />
+                <circle cx="50" cy="40" r="8" fill="url(#hero-grad)" />
+                <path d="M35 60 V75 H65" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            <div
+                style="position: absolute; bottom: -20px; background: rgba(0, 242, 255, 0.1); padding: 0.5rem 1.5rem; border-radius: 20px; border: 1px solid rgba(0, 242, 255, 0.3); backdrop-filter: blur(10px);">
+                <span
+                    style="font-size: 0.75rem; color: #00f2ff; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;">Lapog
+                    Tech</span>
+            </div>
+        </div>
+        <h1
+            style="font-size: 4rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: -0.03em; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+            SecureFace</h1>
+        <p style="font-size: 1.25rem; color: var(--text-dim); max-width: 600px; margin: 0 auto; line-height: 1.6;">
+            Advanced biometric authentication for the modern enterprise.</p>
+    </div>
+
+    <div style="display: flex; gap: 2rem; animation: fadeInUp 1s ease-out both;">
+        <a href="{% url 'login' %}" class="btn btn-primary"
+            style="padding: 1rem 3rem; font-size: 1.1rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);">
+            Employee Portal
+        </a>
+        <a href="{% url 'admin_login' %}" class="btn"
+            style="background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(255, 255, 255, 0.1); padding: 1rem 3rem; font-size: 1.1rem; border-radius: 12px; transition: all 0.2s;">
+            Admin Console
+        </a>
+    </div>
+
+    <!-- Company Overview & About Section -->
+    <div
+        style="width: 100%; max-width: 1000px; margin-top: 5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; animation: fadeInUp 1s ease-out 0.2s both; padding: 0 1rem;">
+
+        <!-- Company Overview -->
+        <div class="glass-card" style="text-align: left; position: relative; overflow: hidden;">
+            <div
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), transparent);">
+            </div>
+            <h3 style="color: white; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                <span
+                    style="background: rgba(99, 102, 241, 0.2); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>
+                Company Overview
+            </h3>
+
+            <div class="custom-dropdown" style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Select
+                    Department</label>
+                <select id="dept-selector" onchange="updateDeptOverview(this.value)"
+                    style="width: 100%; padding: 0.75rem 1rem; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 0.95rem; cursor: pointer;">
+                    {% if all_department_stats %}
+                    {% for dept in all_department_stats %}
+                    <option value="{{ dept.id }}" data-count="{{ dept.emp_count }}"
+                        data-head="{{ dept.head.username|default:'Vacant' }}">{{ dept.name }}</option>
+                    {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+
+            <div
+                style="padding: 1.5rem; background: rgba(255, 255, 255, 0.03); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                <span id="overview-dept-name"
+                    style="display: block; font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 1rem; letter-spacing: -0.02em;">
+                    {% if all_department_stats %}{{ all_department_stats.0.name }}{% else %}No Departments{% endif %}
+                </span>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                        <span
+                            style="display: block; color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Personnel</span>
+                        <span id="overview-dept-count"
+                            style="font-size: 1.5rem; font-weight: 700; color: var(--accent-green);">
+                            {% if all_department_stats %}{{ all_department_stats.0.emp_count }}{% else %}0{% endif %}
+                        </span>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px;">
+                        <span
+                            style="display: block; color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Head</span>
+                        <span id="overview-dept-head"
+                            style="font-size: 1.1rem; font-weight: 600; color: white; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                            {% if all_department_stats %}
+                            {{ all_department_stats.0.head.username|default:"Vacant" }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About System -->
+        <div class="glass-card"
+            style="text-align: left; display: flex; flex-direction: column; justify-content: center;">
+            <h3 style="color: white; margin-bottom: 1rem;">Secure Access Protocol</h3>
+            <p style="color: var(--text-dim); font-size: 1rem; line-height: 1.7; margin-bottom: 1.5rem;">
+                This facility is secured by <strong>SecureFace</strong>, an advanced biometric authorization system.
+            </p>
+            <ul style="list-style: none; padding: 0; margin: 0; color: var(--text-dim);">
+                <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="color: var(--accent-green);">✓</span> Real-time Face Recognition
+                </li>
+                <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="color: var(--accent-green);">✓</span> Liveness Detection
+                </li>
+                <li style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="color: var(--accent-green);">✓</span> Encrypted Data Storage
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</div>
+{% else %}
+
+<div class="dashboard-grid">
+    {% if not user.profile.is_admin_user %}
+    <div class="glass-card" style="grid-column: 1 / -1; padding: 2rem;">
+        <h3 style="margin: 0 0 1.5rem 0; color: var(--primary); font-weight: 800; font-size: 1.25rem;">Employee
+            Information</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div
+                style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <p style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Employee Name</p>
+                <p class="emp-value">{{ user.username }}</p>
+            </div>
+            <div
+                style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <p style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Employee ID</p>
+                <p class="emp-value">{{ user.profile.employee_id|default:"-" }}</p>
+            </div>
+            <div
+                style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <p style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Designation</p>
+                <p class="emp-value">{{ user.profile.designation|default:"-" }}</p>
+            </div>
+            <div
+                style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <p style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Department</p>
+                <p class="emp-value">
+                    {% if departments %}
+                    {% for dept in departments %}{{ dept.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% else %}
+                    -
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card" style="grid-column: 1 / -1; padding: 2rem;">
+        <h3 style="margin: 0 0 1.5rem 0; color: var(--accent-green); font-weight: 800; font-size: 1.25rem;">Salary
+            Breakdown</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <!-- Earnings -->
+            <div>
+                <h4
+                    style="color: white; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                    Earnings (Credit)</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">Basic Pay</span>
+                    <span style="color: white; font-weight: 600;">₹{{ salary_breakdown.basic }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">Dearness Allowance (DA)</span>
+                    <span style="color: white; font-weight: 600;">₹{{ salary_breakdown.da }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">House Rent Allowance (HRA)</span>
+                    <span style="color: white; font-weight: 600;">₹{{ salary_breakdown.hra }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">CCA</span>
+                    <span style="color: white; font-weight: 600;">₹{{ salary_breakdown.cca }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1);">
+                    <span style="color: var(--accent-green); font-weight: 700;">Gross Pay</span>
+                    <span style="color: var(--accent-green); font-weight: 700;">₹{{ salary_breakdown.gross }}</span>
+                </div>
+            </div>
+
+            <!-- Deductions -->
+            <div>
+                <h4
+                    style="color: white; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                    Deductions (Debit)</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">Loan Deduction</span>
+                    <span style="color: var(--accent-red); font-weight: 600;">-₹{{ salary_breakdown.loan }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">Health Insurance</span>
+                    <span style="color: var(--accent-red); font-weight: 600;">-₹{{ salary_breakdown.insurance }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1);">
+                    <span style="color: var(--accent-red); font-weight: 700;">Total Deductions</span>
+                    <span class="cost-value">-₹{{ salary_breakdown.total_deductions }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="margin-top: 2rem; padding: 1.5rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.2); display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: white; font-size: 1.1rem; font-weight: 600;">Net Pay (Take Home)</span>
+            <span style="color: white; font-size: 1.5rem; font-weight: 800;">₹{{ salary_breakdown.net }}</span>
+        </div>
+    </div>
+
+
+    <div class="glass-card" style="grid-column: 1 / -1; padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0; color: var(--primary);">Active Time Analytics</h3>
+            <div class="btn-group" style="display: flex; gap: 0.5rem;">
+                <button onclick="updateChart('day')" class="btn btn-chart active" id="btn-day">Day</button>
+                <button onclick="updateChart('week')" class="btn btn-chart" id="btn-week">Week</button>
+                <button onclick="updateChart('month')" class="btn btn-chart" id="btn-month">Month</button>
+            </div>
+        </div>
+        <div style="height: 300px; position: relative;"><canvas id="activeTimeChart"></canvas></div>
+    </div>
+
+    <!-- Daily Attendance & Salary Report -->
+    <div class="glass-card" style="grid-column: 1 / -1; padding: 2rem;">
+        <h3 style="margin: 0 0 1.5rem 0; color: var(--primary); font-weight: 800; font-size: 1.25rem;">Attendance &
+            Salary Report (Full History)</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; color: white;">
+                <thead>
+                    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
+                        <th style="text-align: left; padding: 1rem; color: var(--text-dim);">Date</th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-dim);">First Login</th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-dim);">Last Logout</th>
+                        <th style="text-align: right; padding: 1rem; color: var(--text-dim);">Duration</th>
+                        <th style="text-align: right; padding: 1rem; color: var(--text-dim);">Daily Salary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in daily_records %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;"
+                        onmouseover="this.style.background='rgba(255,255,255,0.02)'"
+                        onmouseout="this.style.background='transparent'">
+                        <td style="padding: 1rem;">{{ record.date|date:"M d, Y" }}</td>
+                        <td style="padding: 1rem;">{{ record.first_log|date:"H:i" }}</td>
+                        <td style="padding: 1rem;">{{ record.last_log|date:"H:i" }}</td>
+                        <td style="padding: 1rem; text-align: right;">
+                            <span
+                                style="background: rgba(99, 102, 241, 0.2); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem; color: #a5b4fc;">
+                                {{ record.hours }} hrs
+                            </span>
+                        </td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 600; color: var(--accent-green);">
+                            ₹{{ record.salary }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-dim);">No attendance
+                            records found for the last 30 days.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="glass-card"
+        style="padding: 1.5rem; border-left: 4px solid var(--accent-green); background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent);">
+        <p
+            style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 0.5rem;">
+            Total Days (Month)</p>
+        <div style="font-size: 2rem; font-weight: 800; color: white;">{{ current_month_days }} days</div>
+    </div>
+
+    <div class="glass-card"
+        style="padding: 1.5rem; border-left: 4px solid var(--primary); background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent);">
+        <p
+            style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 0.5rem;">
+            Estimated Salary</p>
+        <div style="font-size: 2rem; font-weight: 800; color: white;">₹{{ current_salary }}</div>
+    </div>
+
+    <!-- Department Access Section -->
+    <div style="grid-column: 1 / -1; margin-top: 2rem;">
+        <div class="header" style="margin-bottom: 1.5rem;">
+            <h3 style="margin: 0; color: var(--primary); font-weight: 800; font-size: 1.25rem;">My Departments</h3>
+            <p style="color: var(--text-dim); font-size: 0.875rem; margin: 0.5rem 0 0 0;">Access points available to you
+            </p>
+        </div>
+
+        <div class="dashboard-grid">
+            {% for dept in departments %}
+            <div class="glass-card" style="padding: 2rem;">
+                <h3 style="color: var(--primary); margin-bottom: 1rem;">{{ dept.name }}</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">{{ dept.description }}</p>
+                <a href="{% url 'verify_access' dept.id %}" class="btn btn-primary"
+                    style="width: 100%; text-align: center; padding: 0.75rem;">Enter Department</a>
+            </div>
+            {% empty %}
+            <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                <p style="color: var(--text-dim);">You do not have access to any departments yet. Please contact the
+                    Admin.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.profile.is_admin_user %}
+    <div style="grid-column: 1 / -1; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0; color: var(--primary);">System Monitoring</h3>
+            <div class="glass-card"
+                style="padding: 0.5rem 1.5rem; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2);">
+                <div id="live-clock"
+                    style="font-size: 1.1rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums;">
+                    --:--:--</div>
+            </div>
+        </div>
+        <div class="dashboard-grid" style="margin-bottom: 2rem;">
+            <div class="glass-card"
+                style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent); border-left: 4px solid var(--primary); padding: 1.5rem;">
+                <p style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">
+                    Total Personnel</p>
+                <div style="font-size: 2.5rem; font-weight: 800; color: white;">{{ admin_data.total_employees }}</div>
+            </div>
+            <div class="glass-card"
+                style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent); border-left: 4px solid var(--accent-green); padding: 1.5rem;">
+                <p style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">
+                    Active Departments</p>
+                <div style="font-size: 2.5rem; font-weight: 800; color: white;">{{ admin_data.total_departments }}</div>
+            </div>
+            <div class="glass-card"
+                style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), transparent); border-left: 4px solid var(--accent-red); padding: 1.5rem;">
+                <p style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">
+                    Security Alerts</p>
+                <div style="font-size: 2.5rem; font-weight: 800; color: white;">{{ admin_data.alerts|length }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block footer %}
+{% if is_landing %}
+<footer
+    style="margin-top: 5rem; padding: 4rem 1rem; border-top: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(20px);">
+    <div
+        style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem;">
+
+        <!-- Brand -->
+        <div style="text-align: left;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                <img src="{% static 'img/lapog_tech_logo.png' %}" alt="Lapog Tech"
+                    style="height: 52px; width: auto; filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.3));">
+                <span style="font-size: 1.5rem; font-weight: 800; color: white; letter-spacing: -0.02em;">Lapog
+                    Tech</span>
+            </div>
+            <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; max-width: 300px;">
+                Providing next-generation biometric security solutions for enterprises worldwide.
+            </p>
+        </div>
+
+        <!-- Contact Links -->
+        <div style="text-align: left;">
+            <h4
+                style="color: white; font-size: 1rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                Get in Touch</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem;">
+                <li
+                    style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-dim); font-size: 0.9rem;">
+                    <span style="color: var(--primary);">📍</span> Palakarai, Trichy, Tamilnadu-620001
+                </li>
+                <li
+                    style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-dim); font-size: 0.9rem;">
+                    <span style="color: var(--accent-green);">📞</span> +91 8608831241
+                </li>
+                <li
+                    style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-dim); font-size: 0.9rem;">
+                    <span style="color: var(--primary);">✉️</span> gopalakrish1305@gmail.com
+                </li>
+            </ul>
+        </div>
+
+        <!-- System Links -->
+        <div style="text-align: left;">
+            <h4
+                style="color: white; font-size: 1rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                Quick Links</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <a href="{% url 'login' %}"
+                    style="color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;"
+                    onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-dim)'">Employee
+                    Portal</a>
+                <a href="{% url 'admin_login' %}"
+                    style="color: var(--text-dim); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;"
+                    onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-dim)'">Admin
+                    Console</a>
+            </div>
+        </div>
+
+    </div>
+
+    <div
+        style="max-width: 1200px; margin: 3rem auto 0; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.03); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <p style="color: var(--text-dim); font-size: 0.8rem; margin: 0;">&copy; 2026 SecureFace Authorization Systems.
+            All rights reserved.</p>
+        <div style="display: flex; gap: 1.5rem;">
+            <span style="color: var(--text-dim); font-size: 0.8rem; cursor: pointer;"
+                onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-dim)'">Privacy
+                Policy</span>
+            <span style="color: var(--text-dim); font-size: 0.8rem; cursor: pointer;"
+                onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-dim)'">Terms of
+                Service</span>
+        </div>
+    </div>
+</footer>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateDeptOverview(deptId) {
+        const selector = document.getElementById('dept-selector');
+        if (!selector) return;
+        const selectedOption = selector.options[selector.selectedIndex];
+        document.getElementById('overview-dept-name').textContent = selectedOption.textContent;
+        document.getElementById('overview-dept-count').textContent = selectedOption.getAttribute('data-count');
+        document.getElementById('overview-dept-head').textContent = selectedOption.getAttribute('data-head');
+    }
+</script>
+{% if user.is_authenticated %}
+{{ stats|json_script:"stats-data" }}
+<script>
+    const stats = JSON.parse(document.getElementById('stats-data').textContent);
+    let chart;
+    function initChart() {
+        const chartEl = document.getElementById('activeTimeChart');
+        if (!chartEl) return;
+        const ctx = chartEl.getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: stats.day.labels,
+                datasets: [{ label: 'Status (1=Active, 0=Inactive)', data: stats.day.data, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4, borderWidth: 3, pointRadius: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 1.1, ticks: { stepSize: 1 } } } }
+        });
+    }
+    function updateChart(period) {
+        document.querySelectorAll('.btn-chart').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-' + period).classList.add('active');
+        const data = stats[period];
+        chart.data.labels = data.labels;
+        chart.data.datasets[0].data = data.data;
+        if (period === 'day') { chart.data.datasets[0].label = 'Status (1=Active, 0=Inactive)'; chart.options.scales.y.max = 1.1; }
+        else { chart.data.datasets[0].label = 'Active Hours'; chart.options.scales.y.max = Math.max(...data.data, 8) + 1; }
+        chart.update();
+    }
+    function updateClock() {
+        const now = new Date();
+        const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+        const el = document.getElementById('live-clock');
+        if (el) el.textContent = now.toLocaleTimeString('en-US', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+    initChart();
+</script>
+{% endif %}
+{% endblock %}

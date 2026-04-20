@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Remove Employee - SecureFace{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="glass-card" style="border-color: var(--accent-red);">
+        <h2 style="color: var(--accent-red);">Remove Employee</h2>
+        <p style="margin: 1rem 0;">Are you sure you want to remove the following employee?</p>
+
+        <div
+            style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-dark); border-radius: 0.5rem; margin-bottom: 2rem;">
+            {% if employee_user.profile.face_image %}
+            <img src="{{ employee_user.profile.face_image.url }}" alt=""
+                style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-red);">
+            {% else %}
+            <div
+                style="width: 60px; height: 60px; border-radius: 50%; background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 2px solid var(--accent-red);">
+                No Pic</div>
+            {% endif %}
+            <div>
+                <strong style="font-size: 1.2rem;">{{ employee_user.username }}</strong><br>
+                <span style="color: var(--text-dim);">{{ employee_user.email }}</span>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <label for="reason" style="display: block; margin-bottom: 0.5rem;">Removal Reason <span
+                        style="color: var(--accent-red);">*</span></label>
+                <textarea name="reason" id="reason" rows="4" required
+                    placeholder="e.g., Resignation, Policy violation, Project completion..."
+                    style="width: 100%; padding: 1rem; background: var(--bg-dark); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: var(--text-main); font-family: inherit; resize: vertical;"></textarea>
+                <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.5rem;">This reason will be included
+                    in the email notification sent to the employee.</p>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-danger" style="flex: 1;">Confirm Removal</button>
+                <a href="{% url 'manage_employees' %}" class="btn"
+                    style="background: var(--bg-card); flex: 1; text-align: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Access Granted - SecureFace{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 4rem auto; text-align: center;">
+    <div class="glass-card" style="border-color: var(--accent-green);">
+        <div style="font-size: 5rem; color: var(--accent-green); margin-bottom: 1rem;">✓</div>
+        <h1 style="color: var(--accent-green);">Access Granted</h1>
+        <p style="color: var(--text-dim); margin-bottom: 2rem;">Welcome to the <strong>{{ department.name }}</strong>
+            block.</p>
+
+        <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+            <p>Verification successful for user <strong>{{ user.username }}</strong></p>
+            <p style="font-size: 0.875rem; color: var(--text-dim);">Timestamp: {{ now }}</p>
+        </div>
+
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">Return to Dashboard</a>
+    </div>
+</div>
+
+<!-- Auto redirect or just stay there? User might want to see the confirmation -->
+{% endblock %}

@@ -1,0 +1,106 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Access Logs - SecureFace{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateClock() {
+        const now = new Date();
+        const options = {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        };
+        document.getElementById('live-clock').textContent = now.toLocaleTimeString('en-US', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1>Access & System Logs</h1>
+        <a href="{% url 'admin_dashboard' %}" class="btn" style="background: var(--bg-card); color: var(--text-main);">←
+            Dashboard</a>
+    </div>
+    <div class="glass-card" style="padding: 0.75rem 1.5rem; text-align: right;">
+        <p
+            style="color: var(--text-dim); font-size: 0.75rem; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            Current System Time</p>
+        <div id="live-clock" style="font-size: 1.25rem; font-weight: 600; color: var(--primary);">--:--:--</div>
+    </div>
+</div>
+
+<div class="glass-card">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                <th style="padding: 1rem 0;">User</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Snapshot</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                <td style="padding: 1rem 0;"><strong>{{ log.user.username }}</strong></td>
+                <td>{{ log.department.name|default:"General System" }}</td>
+                <td>
+                    {% if log.status == 'SUCCESS' %}<span class="badge badge-success">SUCCESS</span>
+                    {% elif log.status == 'FAILED' %}<span class="badge badge-danger">FAILED</span>
+                    {% elif log.status == 'FACE_MISMATCH' %}<span class="badge badge-danger">FACE MISMATCH</span>
+                    {% elif log.status == 'LOCKED' %}<span class="badge badge-danger">LOCKED</span>
+                    {% else %}<span class="badge badge-danger">{{ log.status }}</span>{% endif %}
+                </td>
+                <td>
+                    {% if log.snapshot %}
+                    <a href="{{ log.snapshot.url }}" target="_blank">
+                        <img src="{{ log.snapshot.url }}" alt="Snapshot"
+                            style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2);">
+                    </a>
+                    {% else %}
+                    <span style="color: var(--text-dim); font-size: 0.8rem;">No Image</span>
+                    {% endif %}
+                </td>
+                <td style="color: var(--text-dim);">{{ log.timestamp|date:"M. d, Y, g:i a" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-dim);">No logs recorded.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination"
+        style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <span style="color: var(--text-dim); font-size: 0.9rem;">
+            Page {{ logs.number }} of {{ logs.paginator.num_pages }} ({{ logs.paginator.count }} logs)
+        </span>
+
+        <div style="display: flex; gap: 0.5rem;">
+            {% if logs.has_previous %}
+            <a href="?page=1" class="btn"
+                style="background: rgba(255,255,255,0.05); color: var(--text-main); padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--border);">&laquo;
+                First</a>
+            <a href="?page={{ logs.previous_page_number }}" class="btn"
+                style="background: rgba(255,255,255,0.05); color: var(--text-main); padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--border);">Previous</a>
+            {% endif %}
+
+            {% if logs.has_next %}
+            <a href="?page={{ logs.next_page_number }}" class="btn"
+                style="background: rgba(255,255,255,0.05); color: var(--text-main); padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--border);">Next</a>
+            <a href="?page={{ logs.paginator.num_pages }}" class="btn"
+                style="background: rgba(255,255,255,0.05); color: var(--text-main); padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--border);">Last
+                &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

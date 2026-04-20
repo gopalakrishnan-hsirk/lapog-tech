@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile - SecureFace{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 3rem auto;">
+    <div class="glass-card">
+        <h2 style="text-align: center; margin-bottom: 2rem;">User Profile</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="position: relative; display: inline-block;">
+                    {% if user.profile.face_image %}
+                    <img src="{{ user.profile.face_image.url }}" alt="Profile"
+                        style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);">
+                    {% else %}
+                    <div
+                        style="width: 140px; height: 140px; border-radius: 50%; background: #f8fafc; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-dim); font-weight: 600;">
+                        No Photo
+                    </div>
+                    {% endif %}
+                </div>
+                <div style="margin-top: 1rem;">
+                    <label for="face_image" style="cursor: pointer; color: var(--primary); font-size: 0.875rem;">Change
+                        Profile Photo</label>
+                    <input type="file" id="face_image" name="face_image" accept="image/png, image/jpeg"
+                        style="display: none;" onchange="this.form.submit()">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="username">Username</label>
+                <input type="text" id="username" value="{{ user.username }}" disabled
+                    style="background: rgba(255, 255, 255, 0.05); cursor: not-allowed;">
+                <small style="color: var(--text-dim);">Username cannot be changed.</small>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" value="{{ user.email }}" required
+                    placeholder="Enter your email"
+                    style="background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 0.75rem; width: 100%; outline: none;">
+                <small style="color: var(--text-dim);">We'll send notifications here.</small>
+            </div>
+
+            {% if not user.profile.is_admin_user %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label>Employee ID</label>
+                    <input type="text" value="{{ user.profile.employee_id|default:'Not Set' }}" disabled
+                        style="background: rgba(255, 255, 255, 0.05); cursor: not-allowed; color: var(--text-dim); border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 0.75rem; width: 100%;">
+                </div>
+                <div>
+                    <label>Designation</label>
+                    <input type="text" value="{{ user.profile.designation|default:'Not Set' }}" disabled
+                        style="background: rgba(255, 255, 255, 0.05); cursor: not-allowed; color: var(--text-dim); border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 0.75rem; width: 100%;">
+                </div>
+            </div>
+            {% endif %}
+
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem; margin-top: 2rem;">Personal Details</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label for="phone_number">Phone Number</label>
+                    <input type="text" id="phone_number" name="phone_number"
+                        value="{{ user.profile.phone_number|default:'' }}" placeholder="+1234567890"
+                        style="background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 0.75rem; width: 100%; outline: none;">
+                </div>
+                <div>
+                    <label for="date_of_birth">Date of Birth</label>
+                    <input type="date" id="date_of_birth" name="date_of_birth"
+                        value="{{ user.profile.date_of_birth|date:'Y-m-d' }}"
+                        style="background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 0.75rem; width: 100%; outline: none;">
+                </div>
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <label for="address"
+                    style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Address</label>
+                <textarea id="address" name="address" rows="3"
+                    style="width: 100%; border-radius: 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); color: white; padding: 1rem; outline: none; transition: all 0.2s; font-size: 0.95rem;">{{ user.profile.address|default:'' }}</textarea>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 2rem 0;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Change Password</h3>
+            <p style="font-size: 0.875rem; color: var(--text-dim); margin-bottom: 1.5rem;">Leave blank if you don't want
+                to change it.</p>
+
+            <div style="margin-bottom: 1rem;">
+                <label for="password">New Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter new password"
+                    style="background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 0.75rem; width: 100%; outline: none;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password"
+                    style="background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); padding: 0.75rem 1rem; border-radius: 0.75rem; width: 100%; outline: none;">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Changes</button>
+            <a href="{% url 'dashboard' %}" class="btn"
+                style="width: 100%; margin-top: 0.5rem; text-align: center; background: var(--bg-dark);">Back to
+                Dashboard</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Access - SecureFace{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="glass-card" style="text-align: center;">
+        <h2>Access Control: {{ department.name }}</h2>
+        <p style="color: var(--text-dim); margin-bottom: 2rem;">Please verify your face to enter this department block.
+        </p>
+
+        <div id="camera-container"
+            style="position: relative; width: 100%; max-width: 480px; margin: 0 auto; border-radius: 1rem; overflow: hidden; border: 2px solid var(--primary);">
+            <video id="video" width="100%" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+
+            {% if error %}
+            <div id="alert-banner"
+                style="position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(239, 68, 68, 0.9); color: white; padding: 1rem; font-weight: 600;">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <div id="loading-overlay"
+                style="display:none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.8); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div class="spinner"
+                    style="border: 4px solid var(--text-dim); border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;">
+                </div>
+                <p style="margin-top: 1rem;">Verifying Identity...</p>
+            </div>
+        </div>
+
+        <form id="verify-form" method="post" style="margin-top: 2rem;">
+            {% csrf_token %}
+            <input type="hidden" name="image_data" id="image_data">
+            <button type="button" id="verify-btn" class="btn btn-primary" style="width: 100%;">Verify and Enter</button>
+            <a href="{% url 'dashboard' %}" class="btn"
+                style="width: 100%; margin-top: 0.5rem; color: var(--text-dim);">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<style>
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const verifyBtn = document.getElementById('verify-btn');
+    const imageInput = document.getElementById('image_data');
+    const verifyForm = document.getElementById('verify-form');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const cameraContainer = document.getElementById('camera-container');
+
+    async function setupCamera(retries = 3) {
+        try {
+            // Try with ideal constraints first, but allow fallback
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    facingMode: "user"
+                }
+            });
+            video.srcObject = stream;
+            // Clear any previous error messages
+            const existingAlert = document.getElementById('camera-error-alert');
+            if (existingAlert) existingAlert.remove();
+        } catch (err) {
+            console.error("Camera setup error:", err);
+
+            if (retries > 0) {
+                console.log(`Retrying camera setup... (${retries} attempts left)`);
+                setTimeout(() => setupCamera(retries - 1), 1000); // Wait 1s and retry
+            } else {
+                showCameraError(err);
+            }
+        }
+    }
+
+    function showCameraError(err) {
+        let msg = "Could not access webcam.";
+        if (err.name === 'NotAllowedError') { // Standard check
+            msg = "Camera permission denied. Please allow camera access.";
+        } else if (err.name === 'NotFoundError') {
+            msg = "No webcam found. Please connect a camera.";
+        } else if (err.name === 'AbortError' || err.message.includes('Timeout')) {
+            msg = "Camera timed out. Please refresh or check your connection.";
+        } else {
+            msg = `Webcam error: ${err.message || err.name}`;
+        }
+
+        // Display error in the container
+        const existingAlert = document.getElementById('camera-error-alert');
+        if (existingAlert) existingAlert.remove();
+
+        const alertDiv = document.createElement('div');
+        alertDiv.id = 'camera-error-alert';
+        alertDiv.style.position = 'absolute';
+        alertDiv.style.top = '0';
+        alertDiv.style.left = '0';
+        alertDiv.style.width = '100%';
+        alertDiv.style.height = '100%';
+        alertDiv.style.background = 'rgba(0,0,0,0.85)';
+        alertDiv.style.display = 'flex';
+        alertDiv.style.flexDirection = 'column';
+        alertDiv.style.alignItems = 'center';
+        alertDiv.style.justifyContent = 'center';
+        alertDiv.style.zIndex = '10';
+        alertDiv.innerHTML = `
+        <p style="color: #ef4444; font-weight: bold; margin-bottom: 1rem; text-align: center; padding: 0 1rem;">${msg}</p>
+        <button onclick="setupCamera(3)" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Retry Camera</button>
+        `;
+        cameraContainer.appendChild(alertDiv);
+    }
+
+    verifyBtn.addEventListener('click', () => {
+        if (!video.srcObject) {
+            alert("Camera not ready. Please wait or retry.");
+            return;
+        }
+
+        loadingOverlay.style.display = 'flex'; // Show loading overlay
+
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataURL = canvas.toDataURL('image/jpeg');
+        imageInput.value = dataURL;
+
+        verifyForm.submit();
+    });
+
+    setupCamera();
+</script>
+{% endblock %}

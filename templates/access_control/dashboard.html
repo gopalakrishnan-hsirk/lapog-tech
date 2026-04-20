@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - SecureFace{% endblock %}
+
+{% block content %}
+<div class="header"
+    style="margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 2rem; border-radius: 1.5rem; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01);">
+    <div style="display: flex; align-items: center; gap: 1.5rem;">
+        <div
+            style="width: 70px; height: 70px; background: #0a0b1e; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid #1e293b; overflow: hidden;">
+            <svg viewBox="0 0 100 100" style="width: 48px; height: 48px; filter: drop-shadow(0 0 5px #00f2ff);">
+                <path d="M20 20 V80 H80" fill="none" stroke="#00f2ff" stroke-width="12" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </div>
+        <div>
+            <h2
+                style="margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.025em;">
+                SecureFace Dashboard</h2>
+            <p style="color: var(--text-dim); margin: 0; font-size: 0.9rem;">Welcome back, <span
+                    style="color: var(--primary); font-weight: 600;">{{ user.username }}</span></p>
+        </div>
+    </div>
+    <div style="text-align: right;">
+        <div id="live-clock"
+            style="font-size: 1.25rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums;">
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-dim);">{% now "l, F j, Y" %}</div>
+    </div>
+</div>
+
+<!-- Company Overview Section -->
+<div style="margin-bottom: 3rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="color: var(--text-main); font-weight: 800; font-size: 1.25rem; margin: 0;">Company Analytics</h3>
+        <div class="custom-dropdown" style="position: relative; width: 240px;">
+            <select id="dept-selector" onchange="updateDeptOverview(this.value)"
+                style="width: 100%; padding: 0.75rem 1.25rem; background: #fff; border: 1px solid var(--border); border-radius: 12px; color: var(--text-main); font-weight: 600; outline: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                {% for dept in all_department_stats %}
+                <option value="{{ dept.id }}" data-count="{{ dept.emp_count }}"
+                    data-head="{{ dept.head|default:'Vacant' }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div id="dept-overview-card" class="glass-card"
+        style="padding: 2.5rem; background: #fff; border-left: 6px solid var(--primary);">
+        <div style="display: flex; align-items: center; gap: 3rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 250px;">
+                <span id="overview-dept-name"
+                    style="display: block; font-size: 2rem; font-weight: 900; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.01em;">
+                    {% if all_department_stats %}{{ all_department_stats.0.name }}{% else %}No Departments{% endif %}
+                </span>
+                <p style="color: var(--text-dim); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <span
+                        style="display: inline-block; width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%;"></span>
+                    Operational Monitoring System Active
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 1.5rem;">
+                <div
+                    style="background: #f8fafc; padding: 1.5rem; border-radius: 1.25rem; min-width: 160px; border: 1px solid var(--border); text-align: center;">
+                    <span id="overview-dept-count"
+                        style="display: block; font-size: 2.5rem; font-weight: 900; color: var(--primary); line-height: 1;">
+                        {% if all_department_stats %}{{ all_department_stats.0.emp_count }}{% else %}0{% endif %}
+                    </span>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-top: 0.5rem; display: block; letter-spacing: 0.05em;">Team
+                        Size</span>
+                </div>
+                <div
+                    style="background: #f8fafc; padding: 1.5rem; border-radius: 1.25rem; min-width: 180px; border: 1px solid var(--border); text-align: center;">
+                    <span id="overview-dept-head"
+                        style="display: block; font-size: 1.25rem; font-weight: 700; color: var(--text-main); height: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                        {% if all_department_stats %}
+                        {{ all_department_stats.0.head.username|default:"Vacant" }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </span>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-top: 0.5rem; display: block; letter-spacing: 0.05em;">Director</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not user.profile.is_admin_user %}
+<!-- Analytics Section -->
+<div class="glass-card" style="margin-bottom: 2rem; padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; color: var(--primary);">Active Time Analytics</h3>
+        <div class="btn-group" style="display: flex; gap: 0.5rem;">
+            <button onclick="updateChart('day')" class="btn btn-chart active" id="btn-day">Day</button>
+            <button onclick="updateChart('week')" class="btn btn-chart" id="btn-week">Week</button>
+            <button onclick="updateChart('month')" class="btn btn-chart" id="btn-month">Month</button>
+        </div>
+    </div>
+    <div style="height: 300px; position: relative;">
+        <canvas id="activeTimeChart"></canvas>
+    </div>
+</div>
+{% endif %}
+
+<!-- Lapog Tech Information Section -->
+<div class="glass-card"
+    style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(0, 242, 255, 0.05), rgba(99, 102, 241, 0.05)); border-right: 4px solid var(--primary); border-left: none;">
+    <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 300px;">
+            <h3 style="color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.5rem;">🚀</span> SecureFace: Pioneers in AI Security
+            </h3>
+            <p style="color: var(--text-main); line-height: 1.6; margin-bottom: 1rem;">
+                SecureFace is at the forefront of integrating Artificial Intelligence with advanced security frameworks.
+                Our team is dedicated to providing robust, real-time facial recognition and access control solutions
+                that empower organizations to manage their premises with unparalleled confidence.
+            </p>
+            <div style="display: flex; gap: 2rem;">
+                <div>
+                    <span style="display: block; font-weight: bold; color: var(--primary);">24/7</span>
+                    <span style="font-size: 0.8rem; color: var(--text-dim);">Monitoring</span>
+                </div>
+                <div>
+                    <span style="display: block; font-weight: bold; color: var(--primary);">99%</span>
+                    <span style="font-size: 0.8rem; color: var(--text-dim);">Accuracy</span>
+                </div>
+                <div>
+                    <span style="display: block; font-weight: bold; color: var(--primary);">Secure</span>
+                    <span style="font-size: 0.8rem; color: var(--text-dim);">Data Vault</span>
+                </div>
+            </div>
+        </div>
+        <div style="flex-shrink: 0;">
+            <div
+                style="width: 140px; height: 140px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+                <img src="{% static 'img/secureface_logo.png' %}" alt="SecureFace Logo"
+                    style="width: 100px; height: auto; filter: drop-shadow(0 0 15px var(--primary));">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="header" style="margin-bottom: 1rem;">
+    <h3 style="margin: 0;">My Departments</h3>
+    <p style="color: var(--text-dim); font-size: 0.875rem;">Access points available to you</p>
+</div>
+
+<div class="dashboard-grid">
+    {% for dept in departments %}
+    <div class="glass-card">
+        <h3 style="color: var(--primary);">{{ dept.name }}</h3>
+        <p style="color: var(--text-dim); margin-bottom: 1.5rem;">{{ dept.description }}</p>
+        <a href="{% url 'verify_access' dept.id %}" class="btn btn-primary"
+            style="width: 100%; text-align: center;">Enter Department</a>
+    </div>
+    {% empty %}
+    <div class="glass-card" style="grid-column: 1 / -1; text-align: center;">
+        <p style="color: var(--text-dim);">You do not have access to any departments yet. Please contact the Admin.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .btn-chart {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-dim);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-chart.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    #dept-selector:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--primary) !important;
+    }
+
+    #dept-selector option {
+        background: #1a1b2e;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ stats|json_script:"stats-data" }}
+<script>
+    const stats = JSON.parse(document.getElementById('stats-data').textContent);
+    let chart;
+
+    function initChart() {
+        const chartEl = document.getElementById('activeTimeChart');
+        if (!chartEl) return;
+
+        const ctx = chartEl.getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: stats.day.labels,
+                datasets: [{
+                    label: 'Status (1=Active, 0=Inactive)',
+                    data: stats.day.data,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.1,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.5)', stepSize: 1 }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 8
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart(period) {
+        document.querySelectorAll('.btn-chart').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-' + period).classList.add('active');
+
+        const data = stats[period];
+        chart.data.labels = data.labels;
+        chart.data.datasets[0].data = data.data;
+
+        if (period === 'day') {
+            chart.data.datasets[0].label = 'Status (1=Active, 0=Inactive)';
+            chart.options.scales.y.max = 1.1;
+            chart.options.scales.y.ticks.stepSize = 1;
+            chart.options.scales.x.ticks.maxTicksLimit = 8;
+        } else {
+            chart.data.datasets[0].label = 'Active Hours';
+            chart.options.scales.y.max = Math.max(...data.data, 8) + 1;
+            chart.options.scales.y.ticks.stepSize = undefined;
+            chart.options.scales.x.ticks.maxTicksLimit = 15;
+        }
+        chart.update();
+    }
+
+    function updateDeptOverview(deptId) {
+        const selector = document.getElementById('dept-selector');
+        const selectedOption = selector.options[selector.selectedIndex];
+
+        const count = selectedOption.getAttribute('data-count');
+        const head = selectedOption.getAttribute('data-head');
+        const name = selectedOption.textContent;
+
+        const card = document.getElementById('dept-overview-card');
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(10px)';
+
+        setTimeout(() => {
+            document.getElementById('overview-dept-name').textContent = name;
+            document.getElementById('overview-dept-count').textContent = count;
+            document.getElementById('overview-dept-head').textContent = head;
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 200);
+    }
+
+    // Add transition to card
+    document.getElementById('dept-overview-card').style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+
+    initChart();
+</script>
+{% endblock %}
+
+{% block footer %}
+<footer
+    style="margin-top: 4rem; padding: 4rem 2rem; background: linear-gradient(to bottom, transparent, rgba(10, 11, 30, 0.9)); border-top: 1px solid rgba(255, 255, 255, 0.05);">
+    <div class="container"
+        style="max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem;">
+        <!-- Branding -->
+        <div>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                <svg viewBox="0 0 100 100" style="width: 42px; height: 42px; filter: drop-shadow(0 0 5px #00f2ff);">
+                    <path d="M50 5 L90 25 L90 75 L50 95 L10 75 L10 25 Z" fill="none" stroke="#00f2ff" stroke-width="8"
+                        stroke-linejoin="round" />
+                </svg>
+                <h3
+                    style="margin: 0; color: #00f2ff; text-transform: uppercase; letter-spacing: 2px; font-size: 1.4rem; font-weight: 900;">
+                    Lapog <span style="color: white;">Tech</span></h3>
+            </div>
+            <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.6;">
+                Building the future of secure access through innovative AI technology and seamless user experiences.
+            </p>
+        </div>
+
+        <!-- Contact Info -->
+        <div>
+            <h4
+                style="color: white; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">
+                Get in Touch</h4>
+            <div style="display: flex; flex-direction: column; gap: 1rem; color: var(--text-dim); font-size: 0.9rem;">
+                <div style="display: flex; gap: 1rem;">
+                    <span style="color: var(--primary);">📍</span>
+                    <span>Tiruchirappalli - 620 017<br>Tamil Nadu, South India</span>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <span style="color: var(--primary);">✉️</span>
+                    <a href="mailto:gopalakrish1305@gmail.com"
+                        style="color: var(--text-dim); text-decoration: none; transition: color 0.3s;">gopalakrish1305@gmail.com</a>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <span style="color: var(--primary);">📞</span>
+                    <a href="tel:+918608831241"
+                        style="color: var(--text-dim); text-decoration: none; transition: color 0.3s;">+91
+                        8608831241</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Newsletter/Quick Links -->
+        <div>
+            <h4
+                style="color: white; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">
+                Project Home</h4>
+            <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem;">SecureFace Authorization System
+                v2.0</p>
+            <div style="display: flex; gap: 1rem;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: pointer; transition: 0.3s;"
+                    onmouseover="this.style.background='var(--primary)'; this.style.color='white'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--primary)'">𝕏
+                </div>
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: pointer; transition: 0.3s;"
+                    onmouseover="this.style.background='var(--primary)'; this.style.color='white'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--primary)'">in
+                </div>
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: pointer; transition: 0.3s;"
+                    onmouseover="this.style.background='var(--primary)'; this.style.color='white'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--primary)'">Git
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+        style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-dim); font-size: 0.8rem;">
+        &copy; 2026 SecureFace Authorization Systems. All rights reserved. Built with Passion in South India.
+    </div>
+</footer>
+{% endblock %}

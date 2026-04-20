@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics: {{ target_user.username }} - SecureFace{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .btn-chart {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-dim);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-chart.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .emp-value {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0.25rem 0 0;
+    }
+
+    .cost-value {
+        color: var(--accent-red);
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="{% url 'manage_employees' %}"
+            style="color: var(--text-dim); text-decoration: none; font-size: 0.9rem;">← Back</a>
+        <h1 style="margin: 0;">Analytics: {{ target_user.username }}</h1>
+    </div>
+    <div
+        style="padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 8px; font-family: monospace; color: var(--text-dim);">
+        ID: {{ profile.employee_id|default:"N/A" }}
+    </div>
+</div>
+
+<div class="dashboard-grid">
+
+    <!-- Profile Summary -->
+    <div class="glass-card" style="grid-column: 1 / -1; padding: 2rem;">
+        <h3 style="margin: 0 0 1.5rem 0; color: var(--primary); font-weight: 800; font-size: 1.25rem;">Employee Profile
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div
+                style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 1rem;">
+                {% if profile.face_image %}
+                <img src="{{ profile.face_image.url }}"
+                    style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                <div
+                    style="width: 50px; height: 50px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; color: #666;">
+                    No Pic</div>
+                {% endif %}
+                <div>
+                    <p style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase; margin: 0;">Full
+                        Name</p>
+                    <p class="emp-value">{{ target_user.username }}</p>
+                </div>
+            </div>
+
+            <div
+                style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <p style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Designation</p>
+                <p class="emp-value">{{ profile.designation|default:"-" }}</p>
+            </div>
+
+            <div
+                style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <p style="color: var(--text-dim); font-size: 0.75rem; text-transform: uppercase;">Status</p>
+                <p class="emp-value">
+                    {% if profile.is_locked %}<span style="color: var(--accent-red);">Locked</span>
+                    {% else %}<span style="color: var(--accent-green);">Active</span>{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Time Chart -->
+    <div class="glass-card" style="grid-column: 1 / -1; padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0; color: var(--primary);">Active Time Analytics</h3>
+            <div class="btn-group" style="display: flex; gap: 0.5rem;">
+                <button onclick="updateChart('day')" class="btn btn-chart active" id="btn-day">Day</button>
+                <button onclick="updateChart('week')" class="btn btn-chart" id="btn-week">Week</button>
+                <button onclick="updateChart('month')" class="btn btn-chart" id="btn-month">Month</button>
+            </div>
+        </div>
+        <div style="height: 300px; position: relative;"><canvas id="activeTimeChart"></canvas></div>
+    </div>
+
+    <!-- Salary Breakdown -->
+    <div class="glass-card" style="grid-column: 1 / -1; padding: 2rem;">
+        <h3 style="margin: 0 0 1.5rem 0; color: var(--accent-green); font-weight: 800; font-size: 1.25rem;">Salary
+            Breakdown (Current Month)</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <!-- Earnings -->
+            <div>
+                <h4
+                    style="color: white; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                    Earnings (Credit)</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">Basic Pay</span>
+                    <span style="color: white; font-weight: 600;">₹{{ salary_breakdown.basic }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">DA</span>
+                    <span style="color: white; font-weight: 600;">₹{{ salary_breakdown.da }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">HRA</span>
+                    <span style="color: white; font-weight: 600;">₹{{ salary_breakdown.hra }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">CCA</span>
+                    <span style="color: white; font-weight: 600;">₹{{ salary_breakdown.cca }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1);">
+                    <span style="color: var(--accent-green); font-weight: 700;">Gross Pay</span>
+                    <span style="color: var(--accent-green); font-weight: 700;">₹{{ salary_breakdown.gross }}</span>
+                </div>
+            </div>
+
+            <!-- Deductions -->
+            <div>
+                <h4
+                    style="color: white; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
+                    Deductions (Debit)</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">Loan Deduction</span>
+                    <span style="color: var(--accent-red); font-weight: 600;">-₹{{ salary_breakdown.loan }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-dim);">Health Insurance</span>
+                    <span style="color: var(--accent-red); font-weight: 600;">-₹{{ salary_breakdown.insurance }}</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1);">
+                    <span style="color: var(--accent-red); font-weight: 700;">Total Deductions</span>
+                    <span class="cost-value">-₹{{ salary_breakdown.total_deductions }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="margin-top: 2rem; padding: 1.5rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.2); display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: white; font-size: 1.1rem; font-weight: 600;">Net Pay (Take Home)</span>
+            <span style="color: white; font-size: 1.5rem; font-weight: 800;">₹{{ salary_breakdown.net }}</span>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="glass-card"
+        style="padding: 1.5rem; border-left: 4px solid var(--accent-green); background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent);">
+        <p
+            style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 0.5rem;">
+            Total Days (Month)</p>
+        <div style="font-size: 2rem; font-weight: 800; color: white;">{{ current_month_days }} days</div>
+    </div>
+
+    <div class="glass-card"
+        style="padding: 1.5rem; border-left: 4px solid var(--primary); background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent);">
+        <p
+            style="color: var(--text-dim); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 0.5rem;">
+            Estimated Salary</p>
+        <div style="font-size: 2rem; font-weight: 800; color: white;">₹{{ current_salary }}</div>
+    </div>
+
+    <!-- History Table -->
+    <div class="glass-card" style="grid-column: 1 / -1; padding: 2rem;">
+        <h3 style="margin: 0 0 1.5rem 0; color: var(--primary); font-weight: 800; font-size: 1.25rem;">Attendance
+            History</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; color: white;">
+                <thead>
+                    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
+                        <th style="text-align: left; padding: 1rem; color: var(--text-dim);">Date</th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-dim);">First Login</th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-dim);">Last Logout</th>
+                        <th style="text-align: right; padding: 1rem; color: var(--text-dim);">Duration</th>
+                        <th style="text-align: right; padding: 1rem; color: var(--text-dim);">Daily Earnings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in daily_records %}
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem;">{{ record.date|date:"M d, Y" }}</td>
+                        <td style="padding: 1rem;">{{ record.first_log|date:"H:i" }}</td>
+                        <td style="padding: 1rem;">{{ record.last_log|date:"H:i" }}</td>
+                        <td style="padding: 1rem; text-align: right;">{{ record.hours }} hrs</td>
+                        <td style="padding: 1rem; text-align: right; color: var(--accent-green);">₹{{ record.salary }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-dim);">No records
+                            found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ stats|json_script:"stats-data" }}
+<script>
+    const stats = JSON.parse(document.getElementById('stats-data').textContent);
+    let chart;
+
+    function initChart() {
+        const chartEl = document.getElementById('activeTimeChart');
+        if (!chartEl) return;
+
+        const ctx = chartEl.getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: stats.day.labels,
+                datasets: [{
+                    label: 'Status (1=Active, 0=Inactive)',
+                    data: stats.day.data,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 1.1, ticks: { stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    function updateChart(period) {
+        document.querySelectorAll('.btn-chart').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-' + period).classList.add('active');
+
+        const data = stats[period];
+        chart.data.labels = data.labels;
+        chart.data.datasets[0].data = data.data;
+
+        if (period === 'day') {
+            chart.data.datasets[0].label = 'Status (1=Active, 0=Inactive)';
+            chart.options.scales.y.max = 1.1;
+        } else {
+            chart.data.datasets[0].label = 'Active Hours';
+            chart.options.scales.y.max = Math.max(...data.data, 8) + 1;
+        }
+        chart.update();
+    }
+
+    initChart();
+</script>
+{% endblock %}

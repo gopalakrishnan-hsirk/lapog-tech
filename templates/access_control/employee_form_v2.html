@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if edit_mode %}Update{% else %}Create{% endif %} Employee - SecureFace{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 2rem auto;">
+    <div class="glass-card" style="padding: 3rem; background: rgba(17, 24, 39, 0.8);">
+        <h2
+            style="margin-bottom: 2.5rem; color: #fff; display: flex; align-items: center; gap: 1rem; font-size: 1.8rem;">
+            <span
+                style="background: var(--primary); width: 8px; height: 32px; border-radius: 4px; display: inline-block;"></span>
+            {% if edit_mode %}Update Employee Profile{% else %}Add New Employee{% endif %}
+        </h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Section 1: Account Info -->
+            <div style="margin-bottom: 2rem;">
+                <h3
+                    style="font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem; letter-spacing: 0.05em;">
+                    Account Information</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label for="username"
+                            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Username</label>
+                        {% if edit_mode %}
+                        <input type="text" id="username" name="username" value="{{ employee_user.username }}" required
+                            disabled
+                            style="width: 100%; border-radius: 12px; background: rgba(0,0,0,0.1); border: 1px solid var(--border); color: #888; padding: 0.75rem 1rem; outline: none; cursor: not-allowed;">
+                        {% else %}
+                        <input type="text" id="username" name="username" value="{{ employee_user.username }}" required
+                            style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="email"
+                            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Email
+                            Address</label>
+                        <input type="email" id="email" name="email" value="{{ employee_user.email }}" required
+                            style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                    </div>
+                </div>
+
+                {% if not edit_mode %}
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="password"
+                        style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Initial
+                        Password</label>
+                    <input type="password" id="password" name="password" required
+                        style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                </div>
+                {% endif %}
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label for="employee_id"
+                            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Employee
+                            Id</label>
+                        <input type="text" id="employee_id" name="employee_id"
+                            value="{{ employee_profile.employee_id|default:'' }}" required
+                            style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                    </div>
+                    <div>
+                        <label for="designation"
+                            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Designation</label>
+                        <input type="text" id="designation" name="designation"
+                            value="{{ employee_profile.designation|default:'' }}" required
+                            style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="daily_rate"
+                        style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Daily
+                        Rate (₹)</label>
+                    <input type="number" step="0.01" id="daily_rate" name="daily_rate"
+                        value="{{ employee_profile.daily_rate|default:'0.00' }}" required
+                        style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                </div>
+            </div>
+
+            <!-- Section 2: Personal Details -->
+            <div style="margin-bottom: 2rem;">
+                <h3
+                    style="font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem; letter-spacing: 0.05em;">
+                    Personal Details</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label for="phone_number"
+                            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Phone
+                            Number</label>
+                        <input type="text" id="phone_number" name="phone_number"
+                            value="{{ employee_profile.phone_number|default:'' }}" required
+                            style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                    </div>
+                    <div>
+                        <label for="date_of_birth"
+                            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Date
+                            of Birth</label>
+                        <input type="date" id="date_of_birth" name="date_of_birth"
+                            value="{{ employee_profile.date_of_birth|date:'Y-m-d' }}"
+                            style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="address"
+                        style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Address</label>
+                    <textarea id="address" name="address" rows="2" required
+                        style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 1rem; outline: none; transition: all 0.2s; font-size: 0.95rem;">{{ employee_profile.address|default:'' }}</textarea>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="face_image"
+                        style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Profile
+                        Photo (PNG/JPG)</label>
+                    {% if employee_profile.face_image %}
+                    <div style="margin-bottom: 1rem;">
+                        <img src="{{ employee_profile.face_image.url }}" alt="Profile"
+                            style="width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 2px solid var(--primary);">
+                    </div>
+                    {% endif %}
+                    <input type="file" id="face_image" name="face_image" accept="image/png, image/jpeg"
+                        style="width: 100%; padding: 0.5rem 0; color: #ccc;">
+                </div>
+            </div>
+
+            <!-- Section 3: Compensation -->
+            <div style="margin-bottom: 2rem;">
+                <h3
+                    style="font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem; letter-spacing: 0.05em;">
+                    Compensation Details</h3>
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="basic_salary"
+                        style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 0.5rem; display: block;">Basic
+                        Pay (₹)</label>
+                    <input type="number" step="0.01" id="basic_salary" name="basic_salary"
+                        value="{{ employee_profile.basic_salary|default:'0.00' }}"
+                        style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s; font-weight: 600;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label for="loan"
+                            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-red); margin-bottom: 0.5rem; display: block;">Loan
+                            Deduction (₹)</label>
+                        <input type="number" step="0.01" id="loan" name="loan"
+                            value="{{ employee_profile.loan|default:'0.00' }}"
+                            style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                    </div>
+                    <div>
+                        <label for="health_insurance"
+                            style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-red); margin-bottom: 0.5rem; display: block;">Health
+                            Insurance (₹)</label>
+                        <input type="number" step="0.01" id="health_insurance" name="health_insurance"
+                            value="{{ employee_profile.health_insurance|default:'0.00' }}"
+                            style="width: 100%; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: #333; padding: 0.75rem 1rem; outline: none; transition: all 0.2s;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Access & Status -->
+            <div style="margin-bottom: 2rem;">
+                <h3
+                    style="font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem; letter-spacing: 0.05em;">
+                    Access & Status</h3>
+                <label
+                    style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 1rem; display: block;">Department
+                    Access</label>
+                <div
+                    style="display: flex; flex-direction: column; gap: 0.75rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border);">
+                    {% for dept in all_departments %}
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 160px; align-items: center; background: #fff; padding: 0.85rem 1.25rem; border-radius: 0.75rem; border: 1px solid var(--border); gap: 1rem; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <label
+                            style="display: flex; align-items: center; margin: 0; cursor: pointer; font-weight: 600; color: #333; font-size: 0.95rem; line-height: 1;">
+                            {% if access_depts and dept.id in access_depts %}
+                            <input type="checkbox" name="departments" value="{{ dept.id }}" checked
+                                style="width: 20px; height: 20px; margin-right: 1rem; accent-color: var(--primary); cursor: pointer;">
+                            {% else %}
+                            <input type="checkbox" name="departments" value="{{ dept.id }}"
+                                style="width: 20px; height: 20px; margin-right: 1rem; accent-color: var(--primary); cursor: pointer;">
+                            {% endif %}
+                            {{ dept.name }}
+                        </label>
+                        <label
+                            style="display: flex; align-items: center; justify-content: flex-end; margin: 0; cursor: pointer; font-size: 0.75rem; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border-left: 2px solid #f0f0f0; padding-left: 1.25rem; min-height: 24px;">
+                            {% if led_depts and dept.id in led_depts %}
+                            <input type="checkbox" name="head_depts" value="{{ dept.id }}" checked
+                                style="width: 18px; height: 18px; margin-right: 0.6rem; accent-color: var(--primary); cursor: pointer;">
+                            {% else %}
+                            <input type="checkbox" name="head_depts" value="{{ dept.id }}"
+                                style="width: 18px; height: 18px; margin-right: 0.6rem; accent-color: var(--primary); cursor: pointer;">
+                            {% endif %}
+                            Mark as Head
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if edit_mode %}
+                <div
+                    style="margin-top: 1.5rem; padding: 1.5rem; background: rgba(239, 68, 68, 0.08); border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2); display: flex; gap: 2.5rem; align-items: center;">
+                    <label
+                        style="display: flex; align-items: center; cursor: pointer; color: #ff4444; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <input type="checkbox" name="is_locked" {% if employee_profile.is_locked %}checked{% endif %}
+                            style="width: 20px; height: 20px; margin-right: 0.75rem; accent-color: #ff4444;">
+                        Lock Account
+                    </label>
+                    {% if employee_profile.has_setup_face %}
+                    <label
+                        style="display: flex; align-items: center; cursor: pointer; color: var(--primary); font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <input type="checkbox" name="reset_face"
+                            style="width: 20px; height: 20px; margin-right: 0.75rem; accent-color: var(--primary);">
+                        Reset Face Data
+                    </label>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Footer Actions -->
+            <div
+                style="margin-top: 3.5rem; display: flex; gap: 1rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+                <button type="submit" class="btn btn-primary"
+                    style="flex: 2; padding: 1rem; font-weight: 700; font-size: 1rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                    {% if edit_mode %}Save Changes{% else %}Create Account & Send Credentials{% endif %}
+                </button>
+                <a href="{% url 'manage_employees' %}" class="btn"
+                    style="background: transparent; border: 1px solid var(--border); color: #ccc; flex: 1; text-align: center; border-radius: 12px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600; transition: all 0.2s;">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="{% url 'admin_dashboard' %}"
+            style="color: var(--text-dim); text-decoration: none; font-size: 0.9rem; opacity: 0.7; transition: opacity 0.2s;">←
+            Back to System Dashboard</a>
+    </div>
+</div>
+{% endblock %}

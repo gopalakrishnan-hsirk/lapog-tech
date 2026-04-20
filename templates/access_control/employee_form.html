@@ -1,0 +1,129 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}{% if edit_mode %}Edit{% else %}Create{% endif %} Employee - SecureFace{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="glass-card">
+        <h2>{% if edit_mode %}Edit{% else %}Create New{% endif %} Employee</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <h3 style="margin-top: 1.5rem; font-size: 1.1rem;">Account Information</h3>
+            <div>
+                <label for="username">Username</label>
+                {% if edit_mode %}
+                <input type="text" id="username" name="username" value="{{ employee_user.username }}" required disabled>
+                {% else %}
+                <input type="text" id="username" name="username" value="{{ employee_user.username }}" required>
+                {% endif %}
+            </div>
+
+            {% if not edit_mode %}
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            {% endif %}
+
+            <div>
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" value="{{ employee_user.email }}">
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <label for="face_image">Profile Photo (PNG/JPG)</label>
+                {% if employee_profile.face_image %}
+                <div style="margin-bottom: 0.5rem;">
+                    <img src="{{ employee_profile.face_image.url }}" alt="Profile"
+                        style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                </div>
+                {% endif %}
+                <input type="file" id="face_image" name="face_image" accept="image/png, image/jpeg">
+            </div>
+
+            <h3 style="margin-top: 2rem; font-size: 1.1rem;">Personal Details</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label for="phone_number">Phone Number</label>
+                    <input type="text" id="phone_number" name="phone_number"
+                        value="{{ employee_profile.phone_number|default:'' }}" placeholder="+1234567890">
+                </div>
+                <div>
+                    <label for="date_of_birth">Date of Birth</label>
+                    <input type="date" id="date_of_birth" name="date_of_birth"
+                        value="{{ employee_profile.date_of_birth|date:'Y-m-d' }}">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                <div>
+                    <label for="marital_status">Marital Status</label>
+                    <select id="marital_status" name="marital_status">
+                        <option value="">-- Select --</option>
+                        <option value="SINGLE" {% if employee_profile.marital_status=='SINGLE' %}selected{% endif %}>
+                            Single</option>
+                        <option value="MARRIED" {% if employee_profile.marital_status=='MARRIED' %}selected{% endif %}>
+                            Married</option>
+                        <option value="DIVORCED" {% if employee_profile.marital_status=='DIVORCED' %}selected{% endif %}>Divorced</option>
+                        <option value="WIDOWED" {% if employee_profile.marital_status=='WIDOWED' %}selected{% endif %}>
+                            Widowed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 0.5rem;">
+                <label for="address">Address</label>
+                <textarea id="address" name="address" rows="3"
+                    style="width: 100%; border-radius: 0.5rem; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); color: white; padding: 0.75rem;">{{ employee_profile.address|default:'' }}</textarea>
+            </div>
+
+            <h3 style="margin-top: 2rem; font-size: 1.1rem;">Access & Status</h3>
+            <div>
+                <label>Department Access</label>
+                <div
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: var(--bg-dark); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    {% for dept in all_departments %}
+                    <label style="display: flex; align-items: center; margin: 0; cursor: pointer;">
+                        {% if dept in employee_profile.department_access.all %}
+                        <input type="checkbox" name="departments" value="{{ dept.id }}" checked
+                            style="width: auto; margin-right: 0.5rem; margin-bottom: 0;">
+                        {% else %}
+                        <input type="checkbox" name="departments" value="{{ dept.id }}"
+                            style="width: auto; margin-right: 0.5rem; margin-bottom: 0;">
+                        {% endif %}
+                        {{ dept.name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if edit_mode %}
+            <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">
+                <label style="display: flex; align-items: center; cursor: pointer; color: var(--accent-red);">
+                    <input type="checkbox" name="is_locked" {% if employee_profile.is_locked %}checked{% endif %}
+                        style="width: auto; margin-right: 0.5rem; margin-bottom: 0;">
+                    Lock Account
+                </label>
+
+                {% if employee_profile.has_setup_face %}
+                <label style="display: flex; align-items: center; cursor: pointer; color: var(--primary);">
+                    <input type="checkbox" name="reset_face"
+                        style="width: auto; margin-right: 0.5rem; margin-bottom: 0;">
+                    Reset Face Data
+                </label>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    {% if edit_mode %}Update Details{% else %}Create Account{% endif %}
+                </button>
+                <a href="{% url 'manage_employees' %}" class="btn"
+                    style="background: var(--bg-card); flex: 1; text-align: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

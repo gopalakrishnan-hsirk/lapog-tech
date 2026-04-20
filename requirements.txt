@@ -1,0 +1,9 @@
+django>=5.0
+opencv-contrib-python
+mediapipe
+numpy
+pillow
+reportlab
+gunicorn
+whitenoise
+dj-database-url

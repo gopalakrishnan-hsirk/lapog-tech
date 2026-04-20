@@ -1,0 +1,205 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Manage Employees - SecureFace{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>Manage Employees</h1>
+    <a href="{% url 'create_employee' %}" class="btn btn-primary">Add New Employee</a>
+</div>
+
+<div class="glass-card">
+    <table id="employeesTable" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 2px solid var(--border);">
+                <th style="padding: 1rem;">Employee</th>
+                <th style="padding: 1rem;">ID</th>
+                <th style="padding: 1rem;">Designation</th>
+                <th style="padding: 1rem;">Departments</th>
+                <th style="padding: 1rem;">Face Data</th>
+                <th style="padding: 1rem;">Captured Face</th>
+                <th style="padding: 1rem;">Status</th>
+                <th style="padding: 1rem;">Last Login / Active Time</th>
+                <th style="padding: 1rem;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in employees %}
+            <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;">
+                <td style="padding: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        {% if profile.face_image %}
+                        <img src="{{ profile.face_image.url }}" alt=""
+                            style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary);">
+                        {% else %}
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg-dark); border: 1px solid var(--text-dim); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-dim);">
+                            No Pic</div>
+                        {% endif %}
+                        <div>
+                            <strong>{{ profile.user.username }}</strong><br>
+                            <small style="color: var(--text-dim);">{{ profile.user.email }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td style="padding: 1rem;">
+                    <span style="color: var(--text-dim); font-family: monospace;">
+                        {% if profile.employee_id %}{{ profile.employee_id }}{% else %}-{% endif %}
+                    </span>
+                </td>
+                <td style="padding: 1rem;">
+                    {{ profile.designation|default:"-" }}
+                </td>
+                <td style="padding: 1rem;">
+                    {% for dept in profile.department_access.all %}
+                    <span class="badge"
+                        style="background: rgba(99, 102, 241, 0.1); color: var(--primary); margin-right: 0.25rem;">
+                        {{ dept }}
+                    </span>
+                    {% empty %}
+                    <span style="color: var(--text-dim); font-size: 0.875rem;">None</span>
+                    {% endfor %}
+                </td>
+                <td style="padding: 1rem;">
+                    {% if profile.has_setup_face %}
+                    <span class="badge badge-success">Enrolled</span>
+                    {% else %}
+                    <span class="badge badge-danger">Not Set</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 1rem;">
+                    {% if profile.captured_face %}
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <img src="{{ profile.captured_face.url }}" alt="Setup"
+                            style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+                        <a href="{{ profile.captured_face.url }}" target="_blank"
+                            style="font-size: 0.8rem; color: var(--primary);">View</a>
+                    </div>
+                    {% else %}
+                    <span style="color: var(--text-dim); font-size: 0.875rem;">-</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 1rem;">
+                    {% if profile.is_locked %}
+                    <span class="badge badge-danger">Locked</span>
+                    {% else %}
+                    <span class="badge badge-success">Active</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 1rem; color: var(--text-dim); font-size: 0.875rem;">
+                    {{ profile.user.last_login|date:"M. d, H:i"|default:"Never" }}
+                    {% if profile.active_time %}
+                    <br><span class="badge badge-success">Active: {{ profile.active_time }}</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 1rem;">
+                    <a href="{% url 'admin_employee_analytics' profile.user.id %}" target="_blank"
+                        style="color: var(--accent-green); text-decoration: none; margin-right: 1rem; font-weight: 600;">View
+                        Stats</a>
+                    <a href="{% url 'edit_employee' profile.user.id %}"
+                        style="color: var(--primary); text-decoration: none; margin-right: 1rem;">Edit</a>
+                    <a href="{% url 'delete_employee' profile.user.id %}"
+                        style="color: var(--accent-red); text-decoration: none;">Remove</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="padding: 2rem; text-align: center; color: var(--text-dim);">No employees found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<style>
+    /* DataTables Overrides for Dark/Glass Theme */
+    .dataTables_wrapper {
+        color: var(--text-main);
+        font-family: 'Inter', sans-serif;
+        margin-top: 1rem;
+    }
+
+    .dataTables_length select,
+    .dataTables_filter input {
+        background: #fff;
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        border-radius: 8px;
+        padding: 6px 12px;
+        outline: none;
+    }
+
+    .dataTables_info,
+    .dataTables_paginate {
+        margin-top: 1rem;
+        color: var(--text-dim) !important;
+    }
+
+    .paginate_button {
+        color: white !important;
+        background: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        margin-left: 5px;
+    }
+
+    .paginate_button.current {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: white !important;
+    }
+
+    .paginate_button:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+
+    table.dataTable tbody tr {
+        background-color: transparent !important;
+        /* Let glass card show */
+    }
+
+    table.dataTable thead th,
+    table.dataTable thead td {
+        border-bottom: 2px solid var(--border) !important;
+        color: var(--text-dim);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+
+    table.dataTable.no-footer {
+        border-bottom: 0 !important;
+    }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#employeesTable').DataTable({
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "pageLength": 10,
+            "language": {
+                "search": "_INPUT_",
+                "searchPlaceholder": "Search employees...",
+                "lengthMenu": "Show _MENU_ entries"
+            },
+            "columnDefs": [
+                { "orderable": false, "targets": [8] } // Disable sorting on 'Actions' column
+            ]
+        });
+    });
+</script>
+
+<div style="margin-top: 2rem;">
+    <a href="{% url 'admin_dashboard' %}" style="color: var(--text-dim); text-decoration: none;">← Back to Dashboard</a>
+</div>
+{% endblock %}

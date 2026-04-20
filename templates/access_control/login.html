@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Login - SecureFace{% endblock %}
+{% block content %}
+<div style="min-height: calc(100vh - 160px); display: flex; align-items: center; justify-content: center;">
+    <div class="glass-card" style="width: 100%; max-width: 400px;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div
+                style="width: 100px; height: 100px; background: rgba(0, 242, 255, 0.05); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 1px solid rgba(0, 242, 255, 0.2); position: relative; overflow: hidden;">
+                <svg viewBox="0 0 100 100" style="width: 60px; height: 60px; filter: drop-shadow(0 0 8px #00f2ff);">
+                    <path d="M20 20 V80 H80" fill="none" stroke="#00f2ff" stroke-width="12" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M40 40 H80 M60 40 V70" fill="none" stroke="white" stroke-width="12"
+                        stroke-linecap="round" />
+                </svg>
+            </div>
+            <h2 style="margin: 0; color: white;">Welcome Back</h2>
+            <p style="color: var(--text-dim); margin-top: 0.5rem;">Please enter your credentials</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 1.5rem;">
+                <label
+                    style="color: var(--text-dim); font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Username</label>
+                <input type="text" name="username" required placeholder="Enter username"
+                    style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white;">
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label
+                    style="color: var(--text-dim); font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Password</label>
+                <input type="password" name="password" required placeholder="Enter password"
+                    style="width: 100%; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">Sign In</button>
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <a href="{% url 'admin_login' %}"
+                    style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">Admin Gateway →</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

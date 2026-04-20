@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance & Salary Report - SecureFace{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1>Attendance & Salary Report</h1>
+        <a href="{% url 'admin_dashboard' %}" class="btn" style="background: var(--bg-card); color: var(--text-main);">←
+            Dashboard</a>
+    </div>
+    <div class="glass-card" style="padding: 0.75rem 1.5rem; text-align: right;">
+        <p
+            style="color: var(--text-dim); font-size: 0.75rem; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            Date</p>
+        <div style="font-size: 1.25rem; font-weight: 600; color: var(--primary);">{% now "M d, Y" %}</div>
+    </div>
+</div>
+
+<div class="glass-card">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                <th style="padding: 1rem 0;">Date</th>
+                <th>Employee</th>
+                <th>ID</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Duration</th>
+                <th style="text-align: right;">Daily Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in report_data %}
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                <td style="padding: 1rem 0; color: var(--text-dim);">{{ row.date|date:"M d, Y" }}</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        {% if row.user.profile.face_image %}
+                        <img src="{{ row.user.profile.face_image.url }}"
+                            style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                        <div
+                            style="width: 32px; height: 32px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">
+                            {{ row.user.username|slice:":1" }}
+                        </div>
+                        {% endif %}
+                        <strong>{{ row.user.username }}</strong>
+                    </div>
+                </td>
+                <td style="color: var(--text-dim);">{{ row.employee_id|default:"-" }}</td>
+                <td>{{ row.first_log|date:"H:i" }}</td>
+                <td>{{ row.last_log|date:"H:i" }}</td>
+                <td>
+                    <span
+                        style="background: rgba(99, 102, 241, 0.1); color: #a5b4fc; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
+                        {{ row.hours }} hrs
+                    </span>
+                </td>
+                <td style="text-align: right; color: var(--accent-green); font-weight: 600;">
+                    ₹{{ row.daily_salary }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="padding: 2rem; text-align: center; color: var(--text-dim);">No attendance records
+                    found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination"
+        style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05);">
+        <span style="color: var(--text-dim); font-size: 0.9rem;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        <div style="display: flex; gap: 0.5rem;">
+            {% if page_obj.has_previous %}
+            <a href="?page=1" class="btn"
+                style="background: rgba(255,255,255,0.05); color: var(--text-main); padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--border);">&laquo;
+                First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn"
+                style="background: rgba(255,255,255,0.05); color: var(--text-main); padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--border);">Previous</a>
+            {% endif %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn"
+                style="background: rgba(255,255,255,0.05); color: var(--text-main); padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--border);">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn"
+                style="background: rgba(255,255,255,0.05); color: var(--text-main); padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--border);">Last
+                &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
