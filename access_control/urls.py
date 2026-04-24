@@ -1,8 +1,10 @@
 from django.urls import path
+from django.views.generic import TemplateView
 from . import views
 
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
+    path('robots.txt', TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
     path('login/', views.EmployeeLoginView.as_view(), name='login'),
     path('admin/login/', views.AdminLoginView.as_view(), name='admin_login'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
