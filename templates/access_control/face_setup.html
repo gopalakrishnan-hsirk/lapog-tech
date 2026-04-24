@@ -55,14 +55,26 @@
 
     loadingOverlay.style.display = 'none';
 
-    async function setupCamera() {
+    async function setupCamera(retries = 3) {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const constraints = {
+                video: {
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    facingMode: "user"
+                }
+            };
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
             video.srcObject = stream;
         } catch (err) {
             console.error("Error accessing webcam:", err);
-            errorMessage.textContent = "Could not access webcam. Please ensure you have given permission.";
-            errorMessage.style.display = 'block';
+            if (retries > 0) {
+                setTimeout(() => setupCamera(retries - 1), 1000);
+            } else {
+                errorMessage.textContent = "Could not access camera. Please ensure you have given permission and are using HTTPS.";
+                errorMessage.style.display = 'block';
+                loadingOverlay.style.display = 'none';
+            }
         }
     }
 
